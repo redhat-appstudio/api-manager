@@ -1,0 +1,15 @@
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIBinding
+metadata:
+  name: appstudio.redhat.com
+spec:
+  reference:
+    workspace:
+      path: WORKSPACE
+      exportName: api-manager-appstudio.redhat.com
+  acceptedPermissionClaims:
+  - resource: "secrets"
+  - resource: "configmaps"
+  - resource: "namespaces"
+  - group: "apis.kcp.dev"
+    resource: "apibindings"

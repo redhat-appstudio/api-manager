@@ -1,0 +1,8 @@
+resources:
+  - apimanager.apiresourceschemas.yaml
+  - apiexport.yaml
+  - clusterrole.yaml
+  - clusterrolebinding.yaml
+
+configurations:
+  - kustomizeconfig.yaml

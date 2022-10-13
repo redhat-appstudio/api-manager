@@ -1,0 +1,16 @@
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIExport
+metadata:
+  name: appstudio.redhat.com
+spec:
+  latestResourceSchemas:
+    - apimanger.apimanagers.appstudio.redhat.com
+  permissionClaims:
+    - group: ""
+      resource: "secrets"
+    - group: ""
+      resource: "configmaps"
+    - group: ""
+      resource: "namespaces"
+    - group: "apis.kcp.dev"
+      resource: "apibindings"
