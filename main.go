@@ -56,6 +56,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(appstudiov1alpha1.AddToScheme(scheme))
+	utilruntime.Must(apisv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 
 	flag.StringVar(&kubeconfigContext, "context", "", "kubeconfig context")

@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 
+	apisv1alpha1 "github.com/kcp-dev/kcp/pkg/apis/apis/v1alpha1"
 	"github.com/kcp-dev/logicalcluster/v2"
 	appstudiov1alpha1 "github.com/redhat-appstudio/api-manager/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -73,6 +74,6 @@ func (r *ApiManagerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 func (r *ApiManagerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	// TODO: understand how to properly watch for apibidings
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&appstudiov1alpha1.ApiManager{}).
+		For(&apisv1alpha1.APIBinding{}).
 		Complete(r)
 }

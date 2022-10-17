@@ -5,11 +5,15 @@ metadata:
 spec:
   reference:
     workspace:
-      path: WORKSPACE
+      path: root:my-org:api-manager-ws
       exportName: api-manager-appstudio.redhat.com
-  acceptedPermissionClaims:
+  permissionClaims:
   - resource: "secrets"
+    state: Accepted
   - resource: "configmaps"
+    state: Accepted
   - resource: "namespaces"
+    state: Accepted
   - group: "apis.kcp.dev"
     resource: "apibindings"
+    state: Accepted
