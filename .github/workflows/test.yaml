@@ -1,4 +1,4 @@
-name: api-manager-ci
+name: test
 on:
   push:
     branches:
