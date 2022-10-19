@@ -151,7 +151,7 @@ func main() {
 		APIExportName:   apiExportName,
 		ChartPath:       chartPath,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ApiManager")
+		setupLog.Error(err, "unable to create controller", "controller", "APIManager")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

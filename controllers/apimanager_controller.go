@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// APIManagerReconciler reconciles a ApiManager object
+// APIManagerReconciler reconciles a APIManager object
 type APIManagerReconciler struct {
 	client.Client
 	SPWorkspacePath string

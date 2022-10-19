@@ -23,16 +23,16 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// APIManagerSpec defines the desired state of ApiManager
+// APIManagerSpec defines the desired state of APIManager
 type APIManagerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of ApiManager. Edit apimanager_types.go to remove/update
+	// Foo is an example field of APIManager. Edit apimanager_types.go to remove/update
 	Foo string `json:"foo,omitempty"`
 }
 
-// APIManagerStatus defines the observed state of ApiManager
+// APIManagerStatus defines the observed state of APIManager
 type APIManagerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
@@ -41,8 +41,8 @@ type APIManagerStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// ApiManager is the Schema for the apimanagers API
-type ApiManager struct {
+// APIManager is the Schema for the apimanagers API
+type APIManager struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -52,13 +52,13 @@ type ApiManager struct {
 
 //+kubebuilder:object:root=true
 
-// APIManagerList contains a list of ApiManager
+// APIManagerList contains a list of APIManager
 type APIManagerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ApiManager `json:"items"`
+	Items           []APIManager `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&ApiManager{}, &APIManagerList{})
+	SchemeBuilder.Register(&APIManager{}, &APIManagerList{})
 }

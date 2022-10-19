@@ -13,7 +13,7 @@ resources:
   controller: true
   domain: redhat.com
   group: appstudio
-  kind: ApiManager
+  kind: APIManager
   path: github.com/redhat-appstudio/api-manager/api/v1beta1
   version: v1beta1
 version: "3"

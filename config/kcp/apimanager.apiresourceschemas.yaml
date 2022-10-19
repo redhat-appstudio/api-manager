@@ -6,7 +6,7 @@ metadata:
 spec:
   group: appstudio.redhat.com
   names:
-    kind: ApiManager
+    kind: APIManager
     listKind: APIManagerList
     plural: apimanagers
     singular: apimanager
@@ -14,7 +14,7 @@ spec:
   versions:
   - name: v1beta1
     schema:
-      description: ApiManager is the Schema for the apimanagers API
+      description: APIManager is the Schema for the apimanagers API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -29,15 +29,15 @@ spec:
         metadata:
           type: object
         spec:
-          description: APIManagerSpec defines the desired state of ApiManager
+          description: APIManagerSpec defines the desired state of APIManager
           properties:
             foo:
-              description: Foo is an example field of ApiManager. Edit apimanager_types.go
+              description: Foo is an example field of APIManager. Edit apimanager_types.go
                 to remove/update
               type: string
           type: object
         status:
-          description: APIManagerStatus defines the observed state of ApiManager
+          description: APIManagerStatus defines the observed state of APIManager
           type: object
       type: object
     served: true
