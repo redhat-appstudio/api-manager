@@ -2,16 +2,16 @@ name: api-manager-ci
 on:
   push:
     branches:
-      - master
+      - main
     tags-ignore:
       - '*.*'
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   test:
-    name: Test with Coverage
+    name: Test
     runs-on: ubuntu-20.04
     steps:
     - name: Install Go
