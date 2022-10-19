@@ -20,14 +20,17 @@ Following section will list prerequisites and workflow for contributors.
 
 ### Build
 
-build the docker image
+build the docker images
 ```shell
-make docker-build REGISTRY=quay.io ORG=<organization-name-here>
+make docker-build 
 ```
+Note: this will build 2 docker images:
+- apimanager:latest-appstudio (containing the `./helm/appstudio` Chart in the `/workspace/chart` directory of the container image)
+- apimanager:latest-hacbs (containing the `./helm/hacbs` Chart in the `/workspace/chart` directory of the container image)
 
-push the docker image
+push the docker images above
 ```shell
-make docker-push REGISTRY=quay.io ORG=<organization-name-here>
+make docker-push
 ```
 
 ### Deploy the controller
@@ -53,7 +56,7 @@ Following procedure assumes you have a running [kcp](https://github.com/kcp-dev/
    ```
 6. deploy the controller (assuming you already built and pushed the docker images to the docker registry):
     ```shell
-    make deploy
+    make deploy_appstudio (or deploy_hacbs for the hacbs docker image)
     ```
 7. check the `apiexport` was correctly configured:
     ```shell
@@ -70,30 +73,19 @@ Following procedure assumes you have a running [kcp](https://github.com/kcp-dev/
    ```shell
    make apibinding
    ```
-3. check that the bindings are ok:
-   ```shell
-   kubectl get apibindings appstudio.redhat.com -o yaml
-   ```
-4. deploy an ApiManager object:
-    ```shell
-    kubectl apply -f config/samples/appstudio_v1alpha1_apimanager.yaml
-    ```
-5. find the controller pod in the k8s cluster:
+3. find the controller pod in the k8s cluster:
    ```shell
    KUBECONFIG=~/.kube/config kubectl get po -A -l control-plane=controller-manager 
    ```
-6. check the logs of the above pod, you should see the following content:
+4. check the logs of the above pod, you should see the following content:
     ```shell
-    00 OK in 7 milliseconds
-    I1013 21:44:24.667372       1 leaderelection.go:278] successfully renewed lease api-manager-system/751dd497.redhat.com
-    I1013 21:44:26.685268       1 round_trippers.go:553] GET https://192.168.1.110:6443/apis/coordination.k8s.io/v1/namespaces/api-manager-system/leases/751dd497.redhat.com 200 OK in 11 milliseconds
-    I1013 21:44:26.702299       1 round_trippers.go:553] PUT https://192.168.1.110:6443/apis/coordination.k8s.io/v1/namespaces/api-manager-system/leases/751dd497.redhat.com 200 OK in 7 milliseconds
-    I1013 21:44:26.703503       1 leaderelection.go:278] successfully renewed lease api-manager-system/751dd497.redhat.com
-    1.6656974669204428e+09	INFO	Getting apimanager ...	{"controller": "apimanager", "controllerGroup": "appstudio.redhat.com", "controllerKind": "ApiManager", "apiManager": {"name":"apimanager-sample","namespace":"default"}, "namespace": "default", "name": "apimanager-sample", "reconcileID": "a4cf7904-ae96-4c2c-885e-2a424ef67440"}
-    1.6656974669205887e+09	INFO	apimanger found: 	{"controller": "apimanager", "controllerGroup": "appstudio.redhat.com", "controllerKind": "ApiManager", "apiManager": {"name":"apimanager-sample","namespace":"default"}, "namespace": "default", "name": "apimanager-sample", "reconcileID": "a4cf7904-ae96-4c2c-885e-2a424ef67440", "object": {"kind":"ApiManager","apiVersion":"appstudio.redhat.com/v1beta1","metadata":{"name":"apimanager-sample","namespace":"default","uid":"6a154bbe-6284-4eaf-be9e-062576a7b136","resourceVersion":"3336","generation":1,"creationTimestamp":"2022-10-13T21:44:26Z","annotations":{"kcp.dev/cluster":"root:my-org:api-manager-consumer-ws","kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"appstudio.redhat.com/v1beta1\",\"kind\":\"ApiManager\",\"metadata\":{\"annotations\":{},\"name\":\"apimanager-sample\",\"namespace\":\"default\"},\"spec\":null}\n"},"managedFields":[{"manager":"kubectl-client-side-apply","operation":"Update","apiVersion":"appstudio.redhat.com/v1beta1","time":"2022-10-13T21:44:26Z","fieldsType":"FieldsV1","fieldsV1":{"f:metadata":{"f:annotations":{".":{},"f:kubectl.kubernetes.io/last-applied-configuration":{}}}}}]},"spec":{},"status":{}}}
-    I1013 21:44:28.712838       1 round_trippers.go:553] GET https://192.168.1.110:6443/apis/coordination.k8s.io/v1/namespaces/api-manager-system/leases/751dd497.redhat.com 200 OK in 7 milliseconds
-    I1013 21:44:28.718440       1 round_trippers.go:553] PUT https://192.168.1.110:6443/apis/coordination.k8s.io/v1/namespaces/api-manager-system/leases/751dd497.redhat.com 200 OK in 4 milliseconds
-    I1013 21:44:28.719352       1 leaderelection.go:278] successfully renewed lease api-manager-system/751dd497.redhat.com
+   1.666207217489971e+09	INFO	Getting APIBinding ...	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"apiresource.kcp.dev-crsud"}, "namespace": "", "name": "apiresource.kcp.dev-crsud", "reconcileID": "95f343bd-8afc-4c85-b997-5c81d31e2c3d"}
+   1.6662072174914813e+09	INFO	apibinding workspace: 	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"apiresource.kcp.dev-crsud"}, "namespace": "", "name": "apiresource.kcp.dev-crsud", "reconcileID": "95f343bd-8afc-4c85-b997-5c81d31e2c3d", "workspace path": "root"}
+   1.6662072174922872e+09	INFO	Getting APIBinding ...	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314"}
+   1.6662072174924483e+09	INFO	apibinding workspace: 	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314", "workspace path": "root:my-org:api-manager-ws"}
+   1.666207217492498e+09	INFO	apibinding matches APIExport name	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314"}
+   1.666207217492536e+09	INFO	deploying apibidings chart	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314", "chartPath": "/workspace/chart"}
+   1.6662072174926054e+09	INFO	going to deploy apibindings	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314", "workspace path": "root:my-org:api-manager-ws", "chart path": "/workspace/chart"}
     ```
 
 ## Roadmap

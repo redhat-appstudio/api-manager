@@ -1,0 +1,9 @@
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIBinding
+metadata:
+  name: application-api
+spec:
+  reference:
+    workspace:
+      path: {{ .Values.appstudioWorkspace }}
+      exportName: application-api

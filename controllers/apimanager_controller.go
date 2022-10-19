@@ -21,9 +21,7 @@ import (
 
 	apisv1alpha1 "github.com/kcp-dev/kcp/pkg/apis/apis/v1alpha1"
 	"github.com/kcp-dev/logicalcluster/v2"
-	appstudiov1alpha1 "github.com/redhat-appstudio/api-manager/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -32,12 +30,10 @@ import (
 // ApiManagerReconciler reconciles a ApiManager object
 type ApiManagerReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	SPWorkspacePath string
+	APIExportName   string
+	ChartPath       string
 }
-
-//+kubebuilder:rbac:groups=appstudio.redhat.com,resources=apimanagers,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=appstudio.redhat.com,resources=apimanagers/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=appstudio.redhat.com,resources=apimanagers/finalizers,verbs=update
 
 //+kubebuilder:rbac:groups=apis.kcp.dev,resources=apibindings,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=apis.kcp.dev,resources=apibindings/status,verbs=get;update;patch
@@ -53,19 +49,39 @@ func (r *ApiManagerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// Add the logical cluster to the context
 	ctx = logicalcluster.WithCluster(ctx, logicalcluster.New(req.ClusterName))
 
-	logger.Info("Getting apimanager ...")
-	var w appstudiov1alpha1.ApiManager
-	if err := r.Get(ctx, req.NamespacedName, &w); err != nil {
+	logger.Info("Getting APIBinding ...")
+	// Getting current workspace in order to calculate SP workspaces
+	var apiBinding apisv1alpha1.APIBinding
+	if err := r.Get(ctx, req.NamespacedName, &apiBinding); err != nil {
 		if errors.IsNotFound(err) {
-			// Normal - was deleted
+			logger.Error(err, "unable to get APIBinding")
 			return ctrl.Result{}, nil
 		}
 
 		return ctrl.Result{}, err
 	}
-	logger.Info("apimanger found: ", "object", w)
 
-	// TODO: add WRC library integration
+	currentWorkspacePath := apiBinding.Spec.Reference.Workspace.Path
+	logger.Info("apibinding workspace: ", "workspace path", currentWorkspacePath)
+	if apiBinding.Spec.Reference.Workspace.ExportName == r.APIExportName {
+		logger.Info("apibinding matches APIExport name")
+
+		logger.Info("deploying apibidings chart", "chartPath", r.ChartPath)
+
+		spAPIExportPath := currentWorkspacePath
+		if r.SPWorkspacePath != "" {
+			spAPIExportPath = r.SPWorkspacePath
+			logger.Info("forcing apiexport ws path", "path", spAPIExportPath)
+		}
+
+		logger.Info("going to deploy apibindings", "workspace path", spAPIExportPath, "chart path", r.ChartPath)
+
+		// todo integrate WRC call
+		// and pass it the chart path with all the apibidings and the Service Providers Workspace path computed above.
+		// wrc.InstallChart(r.ChartPath, spAPIExportPath)
+	}
+
+	// TODO accept all permission claims in all APIBindings
 
 	return ctrl.Result{}, nil
 }

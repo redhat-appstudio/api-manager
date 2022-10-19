@@ -35,6 +35,7 @@ spec:
       - name: manager
         imagePullPolicy: Always
         args:
+        - "--chart-path=/workspace/chart"
         - "--api-export-name=api-manager-appstudio.redhat.com"
         - "--health-probe-bind-address=:8081"
         - "--metrics-bind-address=127.0.0.1:8080"

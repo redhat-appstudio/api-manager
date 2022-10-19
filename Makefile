@@ -8,7 +8,8 @@ VERSION ?= 0.0.1
 # Image URL to use all building/pushing image targets
 REGISTRY ?= quay.io
 ORG ?= fmuntean
-IMG ?= $(REGISTRY)/$(ORG)/apimanager:latest
+APPSTUDIO_IMG ?= $(REGISTRY)/$(ORG)/apimanager:latest-appstudio
+HACBS_IMG ?= $(REGISTRY)/$(ORG)/apimanager:latest-hacbs
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.24.2
 
@@ -94,19 +95,23 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
+	docker build --build-arg CHART_PATH=helm/appstudio -t ${APPSTUDIO_IMG} .
+	docker build --build-arg CHART_PATH=helm/hacbs -t ${HACBS_IMG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+	docker push ${APPSTUDIO_IMG}
+	docker push ${HACBS_IMG}
 
 .PHONY: podman-build
 podman-build: test ## Build docker image with the manager.
-	podman build -t ${IMG} .
+	podman build --build-arg CHART_PATH=helm/appstudio -t ${APPSTUDIO_IMG} .
+	podman build --build-arg CHART_PATH=helm/hacbs -t ${HACBS_IMG} .
 
 .PHONY: podman-push
 podman-push: ## Push docker image with the manager.
-	podman push ${IMG}
+	podman push ${APPSTUDIO_IMG}
+	podman push ${HACBS_IMG}
 
 ##@ Deployment
 
@@ -122,9 +127,14 @@ install: manifests $(KUSTOMIZE) ## Install APIResourceSchemas and APIExport into
 uninstall: manifests $(KUSTOMIZE) ## Uninstall APIResourceSchemas and APIExport from kcp (using $KUBECONFIG or ~/.kube/config). Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/kcp | kubectl --kubeconfig $(KUBECONFIG) delete --ignore-not-found=$(ignore-not-found) -f -
 
-.PHONY: deploy
-deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+.PHONY: deploy_appstudio
+deploy_appstudio: manifests kustomize ## Deploy the appstudio controller to the K8s cluster specified in ~/.kube/config.
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${APPSTUDIO_IMG}
+	$(KUSTOMIZE) build config/default | kubectl apply -f -
+
+.PHONY: deploy_hacbs
+deploy_hacbs: manifests kustomize ## Deploy the hacbs controller to the K8s cluster specified in ~/.kube/config.
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${HACBS_IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: undeploy

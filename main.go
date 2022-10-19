@@ -66,7 +66,10 @@ func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
-	var apiExportName string
+	var apiExportName, spWorkspacePath, chartPath string
+	flag.StringVar(&chartPath, "chart-path", "", "The path to the helm chart containing the apibindings to deploy.")
+	flag.StringVar(&spWorkspacePath, "sp-workspace-path", "", "The workspace path where the SP are deployed. "+
+		"If provided this will be used otherwise the current workspace where the api-manager will be deployed will be used.")
 	flag.StringVar(&apiExportName, "api-export-name", "", "The name of the APIExport.")
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -139,8 +142,10 @@ func main() {
 	}
 
 	if err = (&controllers.ApiManagerReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:          mgr.GetClient(),
+		SPWorkspacePath: spWorkspacePath,
+		APIExportName:   apiExportName,
+		ChartPath:       chartPath,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApiManager")
 		os.Exit(1)
