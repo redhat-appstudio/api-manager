@@ -84,7 +84,7 @@ func main() {
 	klog.InitFlags(flag.CommandLine)
 
 	flag.Parse()
-	flag.Lookup("v").Value.Set("6")
+	err := flag.Lookup("v").Value.Set("6")
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
@@ -94,8 +94,12 @@ func main() {
 
 	setupLog = setupLog.WithValues("api-export-name", apiExportName)
 
+	if err != nil {
+		setupLog.Error(err, "unable to set flag lookup")
+		return
+	}
+
 	var mgr ctrl.Manager
-	var err error
 
 	options := ctrl.Options{
 		Scheme:                 scheme,
@@ -141,7 +145,7 @@ func main() {
 		}
 	}
 
-	if err = (&controllers.ApiManagerReconciler{
+	if err = (&controllers.APIManagerReconciler{
 		Client:          mgr.GetClient(),
 		SPWorkspacePath: spWorkspacePath,
 		APIExportName:   apiExportName,

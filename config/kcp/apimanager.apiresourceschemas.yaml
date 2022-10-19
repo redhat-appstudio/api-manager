@@ -7,7 +7,7 @@ spec:
   group: appstudio.redhat.com
   names:
     kind: ApiManager
-    listKind: ApiManagerList
+    listKind: APIManagerList
     plural: apimanagers
     singular: apimanager
   scope: Namespaced
@@ -29,7 +29,7 @@ spec:
         metadata:
           type: object
         spec:
-          description: ApiManagerSpec defines the desired state of ApiManager
+          description: APIManagerSpec defines the desired state of ApiManager
           properties:
             foo:
               description: Foo is an example field of ApiManager. Edit apimanager_types.go
@@ -37,7 +37,7 @@ spec:
               type: string
           type: object
         status:
-          description: ApiManagerStatus defines the observed state of ApiManager
+          description: APIManagerStatus defines the observed state of ApiManager
           type: object
       type: object
     served: true

@@ -27,8 +27,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// ApiManagerReconciler reconciles a ApiManager object
-type ApiManagerReconciler struct {
+// APIManagerReconciler reconciles a ApiManager object
+type APIManagerReconciler struct {
 	client.Client
 	SPWorkspacePath string
 	APIExportName   string
@@ -43,7 +43,7 @@ type ApiManagerReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
-func (r *ApiManagerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *APIManagerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
 	// Add the logical cluster to the context
@@ -87,7 +87,7 @@ func (r *ApiManagerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *ApiManagerReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *APIManagerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	// TODO: understand how to properly watch for apibidings
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&apisv1alpha1.APIBinding{}).
