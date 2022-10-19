@@ -1,4 +1,8 @@
 # api-manager `WIP`
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=api-manager&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=api-manager)
+![Security Scan](https://github.com/redhat-appstudio/api-manager/actions/workflows/security.yaml/badge.svg
+)
+
 
 A [kcp](https://github.com/kcp-dev/kcp) specific controller that creates `apibindings` in _AppStudio user workspaces_.
 
