@@ -1,14 +1,15 @@
 name: Container build
 
 on:
-  push:
-    branches:
-      - main
-    tags-ignore:
-      - '*.*'
+  workflow_run:
+    branches: [main]
+    workflows: ["security", "test"]
+    types:
+      - completed
 
 jobs:
   build-image:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
