@@ -145,7 +145,11 @@ func main() {
 		}
 	}
 
-	setupLog.Info("workspace path: " + apiExportWorkspace)
+	setupLog.Info("workspace path from apiexport: " + apiExportWorkspace)
+	if spWorkspacePath != "" {
+		apiExportWorkspace = spWorkspacePath
+		setupLog.Info("forcing workspace path provided at deploy time: " + apiExportWorkspace)
+	}
 	setupLog.Info("chart path: " + chartPath)
 	// TODO add WRC integration
 	//if err = (&controllers.ResourceReconciler{
