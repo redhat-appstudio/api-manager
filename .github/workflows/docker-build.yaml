@@ -1,0 +1,34 @@
+name: Container build
+
+on:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '*.*'
+  pull_request:
+    branches:
+      - main
+jobs:
+  build-image:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout application-service source code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}
+          registry: quay.io
+          repository: fmuntean/api-manager
+
+      - name: Docker Build
+        run: make docker-build
+
+      - name: Docker Push
+        run: make docker-push
