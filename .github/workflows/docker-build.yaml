@@ -9,11 +9,13 @@ on:
 
 jobs:
   build-image:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+        # only runs additional steps if [ test-client, test-server ] were successful
+      - uses: ahmadnassri/action-workflow-run-wait@v1
 
         # Add support for more platforms with QEMU (optional)
         # https://github.com/docker/setup-qemu-action
