@@ -12,6 +12,10 @@ jobs:
   container-scan:
     name: Container Scan
     runs-on: ubuntu-20.04
+    permissions:
+      contents: read
+      security-events: write
+      statuses: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
