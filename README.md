@@ -93,6 +93,17 @@ Following procedure assumes you have a running [kcp](https://github.com/kcp-dev/
    1.666207217492536e+09	INFO	deploying apibidings chart	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314", "chartPath": "/workspace/chart"}
    1.6662072174926054e+09	INFO	going to deploy apibindings	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314", "workspace path": "root:my-org:api-manager-ws", "chart path": "/workspace/chart"}
     ```
+   
+### Check dependency tree using goda
+
+In case you need to look after vulnerable direct/transitive dependencies, or you just want to understand where indirect dependencies are coming from, use [goda](https://pkg.go.dev/github.com/loov/goda#section-readme).
+
+To list all dependency tree run the following from the root folder of the project:
+```shell
+goda tree ./...:all
+```
+
+
 
 ## Roadmap
 
