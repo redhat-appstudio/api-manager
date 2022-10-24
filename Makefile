@@ -59,12 +59,20 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 apiresourceschemas: $(KUSTOMIZE) ## Convert CRDs from config/crds to APIResourceSchemas. Specify APIEXPORT_PREFIX as needed.
 	$(KUSTOMIZE) build config/crd | kubectl kcp crd snapshot -f - --prefix $(APIEXPORT_PREFIX) > config/kcp/$(APIEXPORT_PREFIX).apiresourceschemas.yaml
 
+
+#
+.PHONY: spapiexports
+spapiexports: ## Create service providers APIExports for testing purposes
+	kubectl ws $(APIEXPORT_WORKSPACE)
+	kubectl apply -f ./test/spApiExports/
+
+
 #
 .PHONY: apibinding
 apibinding: ## Generate ApiBinding in the current namespace for the ApiExport, used for testing the controller.
 	$( eval WORKSPACE = $(shell kubectl kcp workspace . --short))
 	sed 's/WORKSPACE/$(APIEXPORT_WORKSPACE)/' ./test/apibinding.yaml | kubectl apply -f -
-	kubectl wait --for=condition=Ready apibinding/appstudio.redhat.com
+	kubectl wait --for=condition=Ready apibinding/api-manager-binding
 
 
 .PHONY: generate

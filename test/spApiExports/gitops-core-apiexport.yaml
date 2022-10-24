@@ -1,0 +1,11 @@
+---
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIExport
+metadata:
+  name: gitops-core-service
+spec:
+  permissionClaims:
+  - group: ""
+    resource: secrets
+  - group: ""
+    resource: namespaces

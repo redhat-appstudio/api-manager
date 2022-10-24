@@ -66,7 +66,11 @@ Following procedure assumes you have a running [kcp](https://github.com/kcp-dev/
     ```
 7. check the `apiexport` was correctly configured:
     ```shell
-    kubectl get apiexports api-manager-appstudio.redhat.com -o yaml
+    kubectl get apiexports api-manager-export -o yaml
+    ```
+8. deploy Service Providers APIExports for testing APIBindings:
+    ```shell
+    make spapiexports
     ```
 
 ### Test the deployment
@@ -79,20 +83,25 @@ Following procedure assumes you have a running [kcp](https://github.com/kcp-dev/
    ```shell
    make apibinding
    ```
-3. find the controller pod in the k8s cluster:
+3. check that all APIBindings were "correctly deployed": 
    ```shell
-   KUBECONFIG=~/.kube/config kubectl get po -A -l control-plane=controller-manager 
-   ```
-4. check the logs of the above pod, you should see the following content:
-    ```shell
-   1.666207217489971e+09	INFO	Getting APIBinding ...	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"apiresource.kcp.dev-crsud"}, "namespace": "", "name": "apiresource.kcp.dev-crsud", "reconcileID": "95f343bd-8afc-4c85-b997-5c81d31e2c3d"}
-   1.6662072174914813e+09	INFO	apibinding workspace: 	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"apiresource.kcp.dev-crsud"}, "namespace": "", "name": "apiresource.kcp.dev-crsud", "reconcileID": "95f343bd-8afc-4c85-b997-5c81d31e2c3d", "workspace path": "root"}
-   1.6662072174922872e+09	INFO	Getting APIBinding ...	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314"}
-   1.6662072174924483e+09	INFO	apibinding workspace: 	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314", "workspace path": "root:my-org:api-manager-ws"}
-   1.666207217492498e+09	INFO	apibinding matches APIExport name	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314"}
-   1.666207217492536e+09	INFO	deploying apibidings chart	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314", "chartPath": "/workspace/chart"}
-   1.6662072174926054e+09	INFO	going to deploy apibindings	{"controller": "apibinding", "controllerGroup": "apis.kcp.dev", "controllerKind": "APIBinding", "aPIBinding": {"name":"appstudio.redhat.com"}, "namespace": "", "name": "appstudio.redhat.com", "reconcileID": "228ff4dc-3015-488c-9a90-a3188a84e314", "workspace path": "root:my-org:api-manager-ws", "chart path": "/workspace/chart"}
+   kubectl get apibindings
+   
+   api-manager-binding         20s
+   apiresource.kcp.dev-crsud   42s
+   application-api             19s
+   application-service         19s
+   build-service               19s
+   gitops-appstudio-service    19s
+   gitops-core-service         18s
+   pipeline-service            18s
+   scheduling.kcp.dev-1emov    42s
+   spi                         17s
+   tenancy.kcp.dev-8so3l       42s
+   workload.kcp.dev-4a61h      42s
     ```
+NOTE: you should see all the APIBindings created, some bound errors may be present if CRD's are missing.
+But all permission claims should show up as accepted.
    
 ### Check dependency tree using goda
 
@@ -108,8 +117,8 @@ goda tree ./...:all
 ## Roadmap
 
 - [x] Project scaffolding
-- [ ] Implement GitHub Actions based CI
-- [ ] Implement proper reconcile logic
+- [x] Implement GitHub Actions based CI
+- [x] Implement proper reconcile logic
 - [ ] Implement unit tests
 - [ ] Implement integration tests that can run locally
 

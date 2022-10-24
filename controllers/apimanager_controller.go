@@ -124,13 +124,12 @@ func (r *APIManagerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 				}}},
 			}
 
-			// check if apibinding exists, if not create it.
-			// Check if the deployment already exists, if not create a new deployment.
+			// Check if apibinding exists, if not create it.
 			found := &apisv1alpha1.APIBinding{}
 			err = r.Get(ctx, types.NamespacedName{Name: apiBindingResource.Name, Namespace: apiBindingResource.Namespace}, found)
 			if err != nil {
 				if errors.IsNotFound(err) {
-					// Define and create a new deployment.
+					// Define and create a new apibinding.
 					r.logger.Info("going to create apibindings", "workspace path", spAPIExportPath, "chart path", r.ChartPath)
 					err := r.Create(ctx, &apiBindingResource)
 					if err != nil {

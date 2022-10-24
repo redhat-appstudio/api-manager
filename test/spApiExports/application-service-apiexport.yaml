@@ -1,0 +1,28 @@
+---
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIExport
+metadata:
+  name: application-service
+  namespace: application-service
+spec:
+  permissionClaims:
+  - group: ""
+    resource: secrets
+  - group: ""
+    resource: namespaces
+  - group: ""
+    resource: configmaps
+  - group: appstudio.redhat.com
+    resource: applications
+  - group: appstudio.redhat.com
+    resource: applicationsnapshotenvironmentbindings
+  - group: appstudio.redhat.com
+    resource: components
+  - group: appstudio.redhat.com
+    resource: componentdetectionqueries
+  - group: appstudio.redhat.com
+    resource: environments
+  - group: appstudio.redhat.com
+    resource: spiaccesstokens
+  - group: appstudio.redhat.com
+    resource: spiaccesstokenbindings
