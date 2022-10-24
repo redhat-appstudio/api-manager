@@ -18,21 +18,47 @@ package controllers
 
 import (
 	"context"
+	"io/ioutil"
+	"path/filepath"
 
+	"github.com/go-logr/logr"
 	apisv1alpha1 "github.com/kcp-dev/kcp/pkg/apis/apis/v1alpha1"
 	"github.com/kcp-dev/logicalcluster/v2"
+	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+// TempAPIBinding maps the template of an APIBinding to Go structs.
+type TempAPIBinding struct {
+	APIVersion string `yaml:"apiVersion"`
+	Kind       string `yaml:"kind"`
+	Metadata   struct {
+		Name string `yaml:"name"`
+	} `yaml:"metadata"`
+	Spec struct {
+		Reference struct {
+			Workspace struct {
+				Path       string `yaml:"path"`
+				ExportName string `yaml:"exportName"`
+			} `yaml:"workspace"`
+		} `yaml:"reference"`
+	} `yaml:"spec"`
+}
+
 // APIManagerReconciler reconciles a APIManager object
 type APIManagerReconciler struct {
 	client.Client
-	SPWorkspacePath string
+	*rest.Config
 	APIExportName   string
+	SPWorkspacePath string
 	ChartPath       string
+	logger          logr.Logger
 }
 
 //+kubebuilder:rbac:groups=apis.kcp.dev,resources=apibindings,verbs=get;list;watch;create;update;patch;delete
@@ -44,17 +70,19 @@ type APIManagerReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *APIManagerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
+	r.logger = log.FromContext(ctx)
 
-	// Add the logical cluster to the context
-	ctx = logicalcluster.WithCluster(ctx, logicalcluster.New(req.ClusterName))
+	// if we're running on kcp, we need to include workspace in context
+	if req.ClusterName != "" {
+		ctx = logicalcluster.WithCluster(ctx, logicalcluster.New(req.ClusterName))
+	}
 
-	logger.Info("Getting APIBinding ...")
+	r.logger.Info("Getting APIBinding ...")
 	// Getting current workspace in order to calculate SP workspaces
 	var apiBinding apisv1alpha1.APIBinding
 	if err := r.Get(ctx, req.NamespacedName, &apiBinding); err != nil {
 		if errors.IsNotFound(err) {
-			logger.Error(err, "unable to get APIBinding")
+			r.logger.Error(err, "unable to get APIBinding")
 			return ctrl.Result{}, nil
 		}
 
@@ -62,28 +90,119 @@ func (r *APIManagerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	currentWorkspacePath := apiBinding.Spec.Reference.Workspace.Path
-	logger.Info("apibinding workspace: ", "workspace path", currentWorkspacePath)
+	r.logger.Info("apibinding workspace: ", "workspace path", currentWorkspacePath)
 	if apiBinding.Spec.Reference.Workspace.ExportName == r.APIExportName {
-		logger.Info("apibinding matches APIExport name")
-
-		logger.Info("deploying apibidings chart", "chartPath", r.ChartPath)
+		r.logger.Info("apibinding matches APIExport name")
 
 		spAPIExportPath := currentWorkspacePath
 		if r.SPWorkspacePath != "" {
 			spAPIExportPath = r.SPWorkspacePath
-			logger.Info("forcing apiexport ws path", "path", spAPIExportPath)
+			r.logger.Info("forcing apiexport ws path", "path", spAPIExportPath)
 		}
 
-		logger.Info("going to deploy apibindings", "workspace path", spAPIExportPath, "chart path", r.ChartPath)
+		// read all templates from /workspace/chart/templates folder
+		templatesPath := filepath.Join(r.ChartPath, "templates")
+		apibindingTemplates, err := ioutil.ReadDir(templatesPath)
+		if err != nil {
+			r.logger.Error(err, "unable to read charts dir content: "+r.ChartPath)
+			return ctrl.Result{}, err
+		}
 
-		// todo integrate WRC call
-		// and pass it the chart path with all the apibidings and the Service Providers Workspace path computed above.
-		// wrc.InstallChart(r.ChartPath, spAPIExportPath)
+		for _, templateFile := range apibindingTemplates {
+			// skip dirs
+			if templateFile.IsDir() {
+				continue
+			}
+
+			err, tempAPIBinding := r.getAPIBindingFromTemplate(filepath.Join(templatesPath, templateFile.Name()))
+			apiBindingResource := apisv1alpha1.APIBinding{
+				TypeMeta:   metav1.TypeMeta{Kind: tempAPIBinding.Kind, APIVersion: tempAPIBinding.APIVersion},
+				ObjectMeta: metav1.ObjectMeta{Name: tempAPIBinding.Metadata.Name, Namespace: req.Namespace},
+				Spec: apisv1alpha1.APIBindingSpec{Reference: apisv1alpha1.ExportReference{Workspace: &apisv1alpha1.WorkspaceExportReference{
+					Path:       spAPIExportPath,
+					ExportName: tempAPIBinding.Spec.Reference.Workspace.ExportName,
+				}}},
+			}
+
+			// check if apibinding exists, if not create it.
+			// Check if the deployment already exists, if not create a new deployment.
+			found := &apisv1alpha1.APIBinding{}
+			err = r.Get(ctx, types.NamespacedName{Name: apiBindingResource.Name, Namespace: apiBindingResource.Namespace}, found)
+			if err != nil {
+				if errors.IsNotFound(err) {
+					// Define and create a new deployment.
+					r.logger.Info("going to create apibindings", "workspace path", spAPIExportPath, "chart path", r.ChartPath)
+					err := r.Create(ctx, &apiBindingResource)
+					if err != nil {
+						r.logger.Error(err, "unable to create apibiding: "+apiBindingResource.ObjectMeta.Name)
+						return ctrl.Result{}, err
+					}
+					r.logger.Info("apibinding created.", "binding name", apiBindingResource.ObjectMeta.Name)
+					return ctrl.Result{Requeue: true}, nil
+				} else {
+					return ctrl.Result{}, err
+				}
+			}
+
+			// accept all permission claims in all APIBindings
+			err = r.acceptAllPermissionClaims(ctx, req, apiBindingResource.ObjectMeta.Name)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
 	}
 
-	// TODO accept all permission claims in all APIBindings
-
 	return ctrl.Result{}, nil
+}
+
+// getAPIBindingFromTemplate returns an APIBinding object from a YAML template file.
+func (r *APIManagerReconciler) getAPIBindingFromTemplate(templateFilePath string) (error, TempAPIBinding) {
+	// unmarshal apibindings template to objects
+	templateContent, err := ioutil.ReadFile(templateFilePath)
+	if err != nil {
+		r.logger.Error(err, "unable to read file: "+templateFilePath)
+	}
+	applicationServiceBinding := TempAPIBinding{}
+	err = yaml.Unmarshal(templateContent, &applicationServiceBinding)
+	if err != nil {
+		r.logger.Error(err, "unmarshal error")
+	}
+	return err, applicationServiceBinding
+}
+
+// acceptAllPermissionClaims, reads all the required permissions from the APIBinding resource and patches the permission claims field.
+func (r *APIManagerReconciler) acceptAllPermissionClaims(ctx context.Context, req ctrl.Request, apiBindingName string) error {
+	logger := log.FromContext(ctx)
+
+	SPAPIBinding := &apisv1alpha1.APIBinding{}
+	err := r.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: apiBindingName}, SPAPIBinding)
+	if err != nil {
+		logger.Error(err, "unable to find apibiding: "+apiBindingName)
+		return err
+	}
+	logger.Info("apibinding resource found", "resource", SPAPIBinding)
+
+	logger.Info("patching apibindings to accept all permission claims", "bindings name", apiBindingName)
+	patchApiBiding := client.MergeFrom(SPAPIBinding.DeepCopy())
+
+	var permissionClaims []apisv1alpha1.AcceptablePermissionClaim
+	for _, exportClaim := range SPAPIBinding.Status.ExportPermissionClaims {
+		permissionClaims = append(permissionClaims, apisv1alpha1.AcceptablePermissionClaim{
+			PermissionClaim: exportClaim,
+			State:           "Accepted",
+		})
+	}
+	logger.Info("following list of permission claims will be used for the patch", "permissionClaims", permissionClaims)
+	SPAPIBinding.Spec.PermissionClaims = permissionClaims
+
+	err = r.Patch(ctx, SPAPIBinding, patchApiBiding)
+	if err != nil {
+		logger.Error(err, "unable to patch apibidings.", "apibindings name", apiBindingName, "permission claim", SPAPIBinding.Spec.PermissionClaims)
+		return err
+	}
+	logger.Info("permission claim for apibindings accepted", "apibindings name", apiBindingName, "permission claim", SPAPIBinding.Spec.PermissionClaims)
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

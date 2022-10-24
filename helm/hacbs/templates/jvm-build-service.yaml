@@ -5,5 +5,5 @@ metadata:
 spec:
   reference:
     workspace:
-      path: {{ .Values.hacbsWorkspace }}
+      path:
       exportName: jvm-build-service

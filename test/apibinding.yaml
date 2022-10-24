@@ -1,12 +1,12 @@
 apiVersion: apis.kcp.dev/v1alpha1
 kind: APIBinding
 metadata:
-  name: appstudio.redhat.com
+  name: api-manager-binding
 spec:
   reference:
     workspace:
       path: root:my-org:api-manager-ws
-      exportName: api-manager-appstudio.redhat.com
+      exportName: api-manager-export
   permissionClaims:
   - resource: "secrets"
     state: Accepted

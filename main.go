@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/redhat-appstudio/api-manager/controllers"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/klog/v2"
@@ -159,16 +160,16 @@ func main() {
 	//  ChartValues: {""}
 	//})
 
-	// TODO enable in order to accept all permision claims for all apibidings
-	//if err = (&controllers.APIManagerReconciler{
-	//	Client:          mgr.GetClient(),
-	//	SPWorkspacePath: spWorkspacePath,
-	//	APIExportName:   apiExportName,
-	//	ChartPath:       chartPath,
-	//}).SetupWithManager(mgr); err != nil {
-	//	setupLog.Error(err, "unable to create controller", "controller", "APIManager")
-	//	os.Exit(1)
-	//}
+	if err = (&controllers.APIManagerReconciler{
+		Client:          mgr.GetClient(),
+		Config:          mgr.GetConfig(),
+		SPWorkspacePath: spWorkspacePath,
+		APIExportName:   apiExportName,
+		ChartPath:       chartPath,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "APIManager")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

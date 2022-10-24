@@ -5,5 +5,5 @@ metadata:
 spec:
   reference:
     workspace:
-      path: {{ .Values.appstudioWorkspace }}
+      path:
       exportName: application-service
