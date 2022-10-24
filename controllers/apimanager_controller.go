@@ -172,17 +172,15 @@ func (r *APIManagerReconciler) getAPIBindingFromTemplate(templateFilePath string
 
 // acceptAllPermissionClaims, reads all the required permissions from the APIBinding resource and patches the permission claims field.
 func (r *APIManagerReconciler) acceptAllPermissionClaims(ctx context.Context, req ctrl.Request, apiBindingName string) error {
-	logger := log.FromContext(ctx)
-
 	SPAPIBinding := &apisv1alpha1.APIBinding{}
 	err := r.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: apiBindingName}, SPAPIBinding)
 	if err != nil {
-		logger.Error(err, "unable to find apibiding: "+apiBindingName)
+		r.logger.Error(err, "unable to find apibiding: "+apiBindingName)
 		return err
 	}
-	logger.Info("apibinding resource found", "resource", SPAPIBinding)
+	r.logger.Info("apibinding resource found", "resource", SPAPIBinding)
 
-	logger.Info("patching apibindings to accept all permission claims", "bindings name", apiBindingName)
+	r.logger.Info("patching apibindings to accept all permission claims", "bindings name", apiBindingName)
 	patchApiBiding := client.MergeFrom(SPAPIBinding.DeepCopy())
 
 	var permissionClaims []apisv1alpha1.AcceptablePermissionClaim
@@ -192,15 +190,15 @@ func (r *APIManagerReconciler) acceptAllPermissionClaims(ctx context.Context, re
 			State:           "Accepted",
 		})
 	}
-	logger.Info("following list of permission claims will be used for the patch", "permissionClaims", permissionClaims)
+	r.logger.Info("following list of permission claims will be used for the patch", "permissionClaims", permissionClaims)
 	SPAPIBinding.Spec.PermissionClaims = permissionClaims
 
 	err = r.Patch(ctx, SPAPIBinding, patchApiBiding)
 	if err != nil {
-		logger.Error(err, "unable to patch apibidings.", "apibindings name", apiBindingName, "permission claim", SPAPIBinding.Spec.PermissionClaims)
+		r.logger.Error(err, "unable to patch apibidings.", "apibindings name", apiBindingName, "permission claim", SPAPIBinding.Spec.PermissionClaims)
 		return err
 	}
-	logger.Info("permission claim for apibindings accepted", "apibindings name", apiBindingName, "permission claim", SPAPIBinding.Spec.PermissionClaims)
+	r.logger.Info("permission claim for apibindings accepted", "apibindings name", apiBindingName, "permission claim", SPAPIBinding.Spec.PermissionClaims)
 	return nil
 }
 
